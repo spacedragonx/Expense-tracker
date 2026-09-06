@@ -1,0 +1,32 @@
+# Usage (VPS deployment only — not used for Render):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# This override removes the frontend's direct port 80 publish and puts
+# Caddy in front of it instead, so Caddy alone owns 80/443 and issues/
+# renews a Let's Encrypt certificate automatically for $DOMAIN.
+
+services:
+  frontend:
+    ports: []   # no longer publish 80 directly; only Caddy talks to it
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: expense-tracker-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+    networks:
+      - expense-net
+
+volumes:
+  caddy_data:
+  caddy_config:
