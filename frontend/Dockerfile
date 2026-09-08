@@ -2,8 +2,16 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
+COPY package.json ./
+# Deliberately NOT copying package-lock.json into this stage. The committed
+# lockfile was generated on Windows and this npm bug (github.com/npm/cli/issues/4828)
+# means npm can skip Rollup's platform-specific optional native binary even on a
+# plain `npm install` when a foreign-platform lockfile is present at all. Installing
+# from package.json alone forces a fresh resolution against this container's actual
+# platform (linux-musl), which is what actually gets @rollup/rollup-linux-x64-musl
+# installed. This only affects this ephemeral build stage — your real
+# package-lock.json on the host is untouched.
+RUN npm install
 
 COPY . .
 

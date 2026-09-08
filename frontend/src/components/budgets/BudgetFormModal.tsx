@@ -172,7 +172,7 @@ export default function BudgetFormModal({
                   >
                     {/* Include the currently-selected category even if it's "used" elsewhere, so its own option isn't dropped from its own row. */}
                     {[categories.find((c) => c._id === row.category), ...availableCategories]
-                      .filter((c, i, arr): c is Category => Boolean(c) && arr.findIndex((x) => x?._id === c._id) === i)
+                      .filter((c, i, arr): c is Category => Boolean(c) && arr.findIndex((x) => x?._id === c?._id) === i)
                       .map((c) => (
                         <option key={c._id} value={c._id}>
                           {c.name}
