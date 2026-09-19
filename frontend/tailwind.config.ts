@@ -34,9 +34,33 @@ export default {
       },
       boxShadow: {
         soft: "0 2px 12px 0 rgb(0 0 0 / 0.06)",
+        lift: "0 8px 24px -8px rgb(0 0 0 / 0.18)",
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
+      keyframes: {
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
+        },
+        "fade-in-up": {
+          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "scale-in": {
+          "0%": { opacity: "0", transform: "scale(0.96)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
+      },
+      animation: {
+        shimmer: "shimmer 1.6s infinite",
+        "fade-in-up": "fade-in-up 0.35s ease-out both",
+        "scale-in": "scale-in 0.18s ease-out both",
+        "pulse-soft": "pulse-soft 2s ease-in-out infinite",
       },
     },
   },
