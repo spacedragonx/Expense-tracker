@@ -78,9 +78,46 @@ export const getSpendingByCategory = asyncHandler(async (req: Request, res: Resp
 });
 
 // @route  GET /api/dashboard/trend?months=6
+// A single calendar month only has one monthly bucket, which makes for a
+// flat, meaningless "trend" line, so months=1 switches to day-level
+// grouping within the current month instead.
 export const getMonthlyTrend = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!._id as Types.ObjectId;
   const months = Math.min(24, Number(req.query.months) || 6);
+
+  if (months === 1) {
+    const qMonth = req.query.month ? Number(req.query.month) : null;
+    const qYear = req.query.year ? Number(req.query.year) : null;
+    
+    let start = new Date();
+    let end = new Date();
+    if (qMonth && qYear) {
+      start = new Date(qYear, qMonth - 1, 1);
+      start.setHours(0, 0, 0, 0);
+      end = new Date(qYear, qMonth, 1);
+      end.setHours(0, 0, 0, 0);
+    } else {
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+    }
+
+    const groupStage = {
+      $group: { _id: { y: { $year: "$date" }, m: { $month: "$date" }, d: { $dayOfMonth: "$date" } }, total: { $sum: "$amount" } },
+    };
+
+    const matchStage = qMonth && qYear
+      ? { $match: { user: userId, date: { $gte: start, $lt: end } } }
+      : { $match: { user: userId, date: { $gte: start } } };
+
+    const [expenseTrend, incomeTrend] = await Promise.all([
+      Expense.aggregate([matchStage, groupStage, { $sort: { _id: 1 } }]),
+      Income.aggregate([matchStage, groupStage, { $sort: { _id: 1 } }]),
+    ]);
+
+    res.json({ success: true, data: { expenseTrend, incomeTrend, granularity: "daily" } });
+    return;
+  }
+
   const start = new Date();
   start.setMonth(start.getMonth() - (months - 1), 1);
   start.setHours(0, 0, 0, 0);
@@ -92,5 +129,5 @@ export const getMonthlyTrend = asyncHandler(async (req: Request, res: Response) 
     Income.aggregate([{ $match: { user: userId, date: { $gte: start } } }, groupStage, { $sort: { _id: 1 } }]),
   ]);
 
-  res.json({ success: true, data: { expenseTrend, incomeTrend } });
+  res.json({ success: true, data: { expenseTrend, incomeTrend, granularity: "monthly" } });
 });
