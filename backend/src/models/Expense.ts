@@ -1,4 +1,5 @@
-import { Schema, model, Document, Types } from "mongoose";
+import crypto from "crypto";
+import { Schema, model, Document, Types, Model } from "mongoose";
 
 export type PaymentMethod =
   | "cash"
@@ -30,8 +31,16 @@ export interface IExpense extends Document {
   receiptUrl?: string;
   tags: string[];
   recurrence: IRecurrence;
+  /** Tracks whether this expense was entered manually or imported from a bank statement. */
+  source: "manual" | "statement_import";
+  /** sha256 fingerprint for duplicate detection across statement imports. */
+  dedupHash?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+interface IExpenseModel extends Model<IExpense> {
+  computeHash(userId: string, date: string, amount: number, description: string, type?: string): string;
 }
 
 const expenseSchema = new Schema<IExpense>(
@@ -56,6 +65,12 @@ const expenseSchema = new Schema<IExpense>(
       nextRunDate: { type: Date },
       endDate: { type: Date },
     },
+    source: {
+      type: String,
+      enum: ["manual", "statement_import"],
+      default: "manual",
+    },
+    dedupHash: { type: String, sparse: true },
   },
   { timestamps: true }
 );
@@ -63,5 +78,27 @@ const expenseSchema = new Schema<IExpense>(
 // Common query patterns: list by user within a date range, filter by category
 expenseSchema.index({ user: 1, date: -1 });
 expenseSchema.index({ user: 1, category: 1, date: -1 });
+// Sparse unique index ensures no two statement imports share the same fingerprint per user
+expenseSchema.index({ user: 1, dedupHash: 1 }, { unique: true, sparse: true });
 
-export default model<IExpense>("Expense", expenseSchema);
+/**
+ * Compute a stable deduplication hash.
+ * sha256( userId | date | amount | normalizedDescription | type )
+ */
+expenseSchema.statics.computeHash = function (
+  userId: string,
+  date: string,
+  amount: number,
+  description: string,
+  type: string = "expense"
+): string {
+  // Normalize description by removing special characters and extra spaces, but keep alphanumeric
+  const normalizedDesc = description
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .trim();
+  const payload = `${userId}|${date}|${amount}|${normalizedDesc}|${type}`;
+  return crypto.createHash("sha256").update(payload).digest("hex");
+};
+
+export default model<IExpense, IExpenseModel>("Expense", expenseSchema);

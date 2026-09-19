@@ -12,6 +12,7 @@ import budgetRoutes from "./routes/budgetRoutes";
 import goalRoutes from "./routes/goalRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
+import statementUploadRoutes from "./routes/statementUpload";
 
 import { notFound, errorHandler } from "./middleware/errorMiddleware";
 import { apiLimiter } from "./middleware/rateLimiter";
@@ -46,6 +47,7 @@ app.use("/api/budgets", budgetRoutes);
 app.use("/api/goals", goalRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/statements", statementUploadRoutes);
 
 // --- Error handling (must be last) ---
 app.use(notFound);
