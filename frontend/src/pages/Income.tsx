@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import incomeApi, { IncomePayload, IncomeQuery } from "@/api/incomeApi";
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +22,7 @@ const SOURCE_LABELS: Record<IncomeSource, string> = {
 export default function IncomePage() {
   const { user } = useAuth();
   const currency = user?.currency || "INR";
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [total, setTotal] = useState(0);
@@ -68,6 +70,19 @@ export default function IncomePage() {
     setEditingIncome(null);
     setIsFormOpen(true);
   };
+
+  // Supports the navbar's Quick Add menu, which links here with ?add=1 so the
+  // form opens immediately instead of landing on a blank list.
+  useEffect(() => {
+    if (searchParams.get("add") === "1") {
+      openCreate();
+      setSearchParams((params) => {
+        params.delete("add");
+        return params;
+      }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const openEdit = (income: Income) => {
     setEditingIncome(income);

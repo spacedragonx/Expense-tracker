@@ -14,6 +14,7 @@ import Goals from "@/pages/Goals";
 import CalendarView from "@/pages/CalendarView";
 import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
+import StatementImport from "@/pages/StatementImport";
 import NotFound from "@/pages/NotFound";
 
 export default function AppRoutes() {
@@ -42,6 +43,7 @@ export default function AppRoutes() {
         <Route path="/calendar" element={<CalendarView />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/statement-import" element={<StatementImport />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

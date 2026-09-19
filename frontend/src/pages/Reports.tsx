@@ -19,19 +19,7 @@ const PERIOD_TABS: { value: Period; label: string }[] = [
   { value: "yearly", label: "Yearly" },
 ];
 
-/** Fallback swatches for categories that have no `color` set, cycled in order. */
-const FALLBACK_COLORS = [
-  "#10b981",
-  "#3b82f6",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#06b6d4",
-  "#f97316",
-  "#84cc16",
-  "#ec4899",
-  "#64748b",
-];
+import { categoryColor as getCategoryColor } from "@/utils/categoryColors";
 
 type Row = (Expense & { kind: "expense" }) | (Income & { kind: "income" });
 
@@ -39,7 +27,7 @@ function categoryLabel(category: Expense["category"]) {
   return typeof category === "string" ? "Uncategorized" : category.name;
 }
 
-function categoryColor(category: Expense["category"]) {
+function getExpenseCategoryColor(category: Expense["category"]) {
   return typeof category === "string" ? undefined : category.color;
 }
 
@@ -134,7 +122,7 @@ export default function Reports() {
       if (existing) {
         existing.total += expense.amount;
       } else {
-        map.set(name, { name, color: categoryColor(expense.category), total: expense.amount });
+        map.set(name, { name, color: getExpenseCategoryColor(expense.category), total: expense.amount });
       }
     });
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
@@ -258,7 +246,7 @@ export default function Reports() {
               <ul className="space-y-3">
                 {categoryBreakdown.map((item, index) => {
                   const percent = totalExpenses > 0 ? Math.round((item.total / totalExpenses) * 100) : 0;
-                  const color = item.color || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+                  const color = getCategoryColor(item.color, index, item.name);
                   return (
                     <li key={item.name}>
                       <div className="mb-1 flex items-center justify-between text-sm">

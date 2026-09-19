@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { motion } from "motion/react";
 import { Plus, Pencil, Copy, Trash2, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import expenseApi, { ExpensePayload, ExpenseQuery } from "@/api/expenseApi";
 import categoryApi from "@/api/categoryApi";
@@ -14,6 +16,7 @@ const PAGE_SIZE = 20;
 export default function Expenses() {
   const { user } = useAuth();
   const currency = user?.currency || "INR";
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -73,6 +76,19 @@ export default function Expenses() {
     setIsFormOpen(true);
   };
 
+  // Supports the navbar's Quick Add menu, which links here with ?add=1 so the
+  // form opens immediately instead of landing on a blank list.
+  useEffect(() => {
+    if (searchParams.get("add") === "1") {
+      openCreate();
+      setSearchParams((params) => {
+        params.delete("add");
+        return params;
+      }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const openEdit = (expense: Expense) => {
     setEditingExpense(expense);
     setIsFormOpen(true);
@@ -119,6 +135,27 @@ export default function Expenses() {
 
   const categoryName = (category: Expense["category"]) =>
     typeof category === "string" ? categories.find((c) => c._id === category)?.name || "—" : category.name;
+
+  // Group the current page's rows by month (they arrive sorted -date, so
+  // this just buckets a run of consecutive same-month rows — no re-sort needed).
+  const groupedExpenses = useMemo(() => {
+    const groups: { key: string; label: string; items: Expense[] }[] = [];
+    for (const expense of expenses) {
+      const d = new Date(expense.date);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const last = groups[groups.length - 1];
+      if (last && last.key === key) {
+        last.items.push(expense);
+      } else {
+        groups.push({
+          key,
+          label: d.toLocaleDateString(undefined, { month: "long", year: "numeric" }),
+          items: [expense],
+        });
+      }
+    }
+    return groups;
+  }, [expenses]);
 
   return (
     <div className="space-y-6">
@@ -169,68 +206,83 @@ export default function Expenses() {
             No expenses found{search || categoryFilter ? " for these filters." : " yet. Add your first one."}
           </p>
         ) : (
-          <ul className="divide-y divide-gray-100 dark:divide-slate-700">
-            {expenses.map((expense) => (
-              <li key={expense._id} className="flex items-center justify-between gap-4 px-5 py-3.5">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-50">{expense.title}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatDate(expense.date)} · {categoryName(expense.category)}
-                  </p>
-                </div>
+          <div className="divide-y divide-gray-100 dark:divide-slate-700">
+            {groupedExpenses.map((group) => (
+              <div key={group.key}>
+                <p className="sticky top-0 z-10 bg-gray-50/90 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 backdrop-blur dark:bg-slate-800/90 dark:text-gray-400">
+                  {group.label}
+                </p>
+                <ul className="divide-y divide-gray-100 dark:divide-slate-700">
+                  {group.items.map((expense, index) => (
+                    <motion.li
+                      key={expense._id}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2, delay: Math.min(index * 0.025, 0.25), ease: "easeOut" }}
+                      className="flex items-center justify-between gap-4 px-5 py-3.5"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-50">{expense.title}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatDate(expense.date)} · {categoryName(expense.category)}
+                        </p>
+                      </div>
 
-                <div className="flex shrink-0 items-center gap-4">
-                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-50">
-                    {formatCurrency(expense.amount, currency)}
-                  </span>
+                      <div className="flex shrink-0 items-center gap-4">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+                          −{formatCurrency(expense.amount, currency)}
+                        </span>
 
-                  {confirmDeleteId === expense._id ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Delete?</span>
-                      <button
-                        onClick={() => handleDelete(expense._id)}
-                        disabled={rowActionId === expense._id}
-                        className="text-xs font-medium text-danger hover:underline"
-                      >
-                        Confirm
-                      </button>
-                      <button
-                        onClick={() => setConfirmDeleteId(null)}
-                        className="text-xs font-medium text-gray-500 hover:underline dark:text-gray-400"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => openEdit(expense)}
-                        aria-label="Edit"
-                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-slate-700 dark:hover:text-gray-300"
-                      >
-                        <Pencil size={15} />
-                      </button>
-                      <button
-                        onClick={() => handleDuplicate(expense._id)}
-                        disabled={rowActionId === expense._id}
-                        aria-label="Duplicate"
-                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-slate-700 dark:hover:text-gray-300"
-                      >
-                        <Copy size={15} />
-                      </button>
-                      <button
-                        onClick={() => setConfirmDeleteId(expense._id)}
-                        aria-label="Delete"
-                        className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-danger dark:hover:bg-red-500/10"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </li>
+                        {confirmDeleteId === expense._id ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Delete?</span>
+                            <button
+                              onClick={() => handleDelete(expense._id)}
+                              disabled={rowActionId === expense._id}
+                              className="text-xs font-medium text-danger hover:underline"
+                            >
+                              Confirm
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteId(null)}
+                              className="text-xs font-medium text-gray-500 hover:underline dark:text-gray-400"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => openEdit(expense)}
+                              aria-label="Edit"
+                              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-slate-700 dark:hover:text-gray-300"
+                            >
+                              <Pencil size={15} />
+                            </button>
+                            <button
+                              onClick={() => handleDuplicate(expense._id)}
+                              disabled={rowActionId === expense._id}
+                              aria-label="Duplicate"
+                              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-slate-700 dark:hover:text-gray-300"
+                            >
+                              <Copy size={15} />
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteId(expense._id)}
+                              aria-label="Delete"
+                              className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-danger dark:hover:bg-red-500/10"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </motion.li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </Card>
 
