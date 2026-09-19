@@ -1,24 +1,18 @@
 import { useState } from "react";
-import { Bell, Plus, LogOut, ChevronDown } from "lucide-react";
+import { Bell, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import QuickAddMenu from "./QuickAddMenu";
 
-/**
- * Top navbar: quick-add button, notifications, and profile menu.
- * `onQuickAdd` is left as a hook for whichever page renders this — the
- * shell just surfaces the button.
- */
-export default function Navbar({ onQuickAdd }: { onQuickAdd?: () => void }) {
+/** Top navbar: quick-add menu, notifications, and profile menu. */
+export default function Navbar() {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white/95 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 md:px-6">
+    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100/80 bg-white/80 px-4 py-3 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80 md:px-6">
       <div />
       <div className="flex items-center gap-3">
-        <button onClick={onQuickAdd} className="btn-primary gap-1.5">
-          <Plus size={16} />
-          <span className="hidden sm:inline">Quick Add</span>
-        </button>
+        <QuickAddMenu />
 
         <button
           className="rounded-xl p-2 text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-slate-800"
