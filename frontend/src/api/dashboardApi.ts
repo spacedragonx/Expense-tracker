@@ -8,15 +8,16 @@ export interface SpendingByCategoryItem {
   total: number;
 }
 
-/** Raw aggregation point as Mongo returns it: `_id` is a {year, month} bucket key. */
+/** Raw aggregation point as Mongo returns it: `_id` is a {year, month} bucket, or {year, month, day} for daily granularity. */
 export interface TrendAggPoint {
-  _id: { y: number; m: number };
+  _id: { y: number; m: number; d?: number };
   total: number;
 }
 
 export interface TrendResponse {
   expenseTrend: TrendAggPoint[];
   incomeTrend: TrendAggPoint[];
+  granularity: "monthly" | "daily";
 }
 
 export const dashboardApi = {
@@ -28,7 +29,8 @@ export const dashboardApi = {
       params,
     }),
 
-  trend: (params?: { months?: number }) =>
+  /** `months: 1` switches the backend to day-level grouping within the current month. */
+  trend: (params?: { months?: number; month?: number; year?: number }) =>
     apiClient.get<{ success: boolean; data: TrendResponse }>("/dashboard/trend", { params }),
 };
 

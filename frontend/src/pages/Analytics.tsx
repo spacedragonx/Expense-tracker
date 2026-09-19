@@ -15,6 +15,7 @@ import {
   RadarChart,
   ResponsiveContainer,
   Tooltip,
+  TooltipProps,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -23,24 +24,12 @@ import dashboardApi, { SpendingByCategoryItem, TrendAggPoint } from "@/api/dashb
 import { useAuth } from "@/context/AuthContext";
 import Card from "@/components/common/Card";
 import { formatCurrency, formatMonthYear } from "@/utils/format";
+import { categoryColor } from "@/utils/categoryColors";
 
 const now = new Date();
 
-/** Fallback swatches for categories that have no `color` set, cycled in order. */
-const FALLBACK_COLORS = [
-  "#10b981",
-  "#3b82f6",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#06b6d4",
-  "#f97316",
-  "#84cc16",
-  "#ec4899",
-  "#64748b",
-];
-
 const TREND_RANGES = [
+  { label: "This month", months: 1 },
   { label: "3M", months: 3 },
   { label: "6M", months: 6 },
   { label: "12M", months: 12 },
@@ -49,12 +38,13 @@ const TREND_RANGES = [
 interface TrendSeriesPoint {
   key: string;
   label: string;
+  fullDate?: string;
   income: number;
   expenses: number;
 }
 
 /** Builds a gap-free monthly series (oldest -> newest) from the two raw aggregation arrays. */
-function buildTrendSeries(expenseTrend: TrendAggPoint[], incomeTrend: TrendAggPoint[], months: number) {
+function buildMonthlyTrendSeries(expenseTrend: TrendAggPoint[], incomeTrend: TrendAggPoint[], months: number) {
   const series: TrendSeriesPoint[] = [];
   const byKey = new Map<string, TrendSeriesPoint>();
 
@@ -64,6 +54,7 @@ function buildTrendSeries(expenseTrend: TrendAggPoint[], incomeTrend: TrendAggPo
     const point: TrendSeriesPoint = {
       key,
       label: d.toLocaleDateString(undefined, { month: "short" }),
+      fullDate: d.toLocaleDateString(undefined, { month: "long", year: "numeric" }),
       income: 0,
       expenses: 0,
     };
@@ -83,6 +74,62 @@ function buildTrendSeries(expenseTrend: TrendAggPoint[], incomeTrend: TrendAggPo
   return series;
 }
 
+/** Builds a gap-free day-by-day series for the specified month, 1st through end of month (or today if current month). */
+function buildDailyTrendSeries(expenseTrend: TrendAggPoint[], incomeTrend: TrendAggPoint[], selectedMonth: number, selectedYear: number) {
+  const series: TrendSeriesPoint[] = [];
+  const byKey = new Map<string, TrendSeriesPoint>();
+  
+  const isCurrentMonth = selectedMonth === now.getMonth() + 1 && selectedYear === now.getFullYear();
+  const lastDay = isCurrentMonth ? now.getDate() : new Date(selectedYear, selectedMonth, 0).getDate();
+
+  for (let day = 1; day <= lastDay; day++) {
+    const d = new Date(selectedYear, selectedMonth - 1, day);
+    const key = `${selectedYear}-${selectedMonth}-${day}`;
+    const point: TrendSeriesPoint = { 
+      key, 
+      label: String(day), 
+      fullDate: d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
+      income: 0, 
+      expenses: 0 
+    };
+    byKey.set(key, point);
+    series.push(point);
+  }
+
+  expenseTrend.forEach(({ _id, total }) => {
+    const point = byKey.get(`${_id.y}-${_id.m}-${_id.d}`);
+    if (point) point.expenses = total;
+  });
+  incomeTrend.forEach(({ _id, total }) => {
+    const point = byKey.get(`${_id.y}-${_id.m}-${_id.d}`);
+    if (point) point.income = total;
+  });
+
+  return series;
+}
+
+/** Shared tooltip: matches the card/dark-mode styling instead of Recharts' hardcoded light box. */
+function ChartTooltip({ active, payload, label, currency }: TooltipProps<number, string> & { currency: string }) {
+  if (!active || !payload || payload.length === 0) return null;
+  const tooltipTitle = payload[0]?.payload?.fullDate || label;
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white/95 px-3 py-2 text-xs shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-800/95">
+      {tooltipTitle !== undefined && <p className="mb-1 font-medium text-gray-900 dark:text-gray-50">{tooltipTitle}</p>}
+      <div className="space-y-1">
+        {payload.map((entry) => (
+          <div key={entry.dataKey ?? entry.name} className="flex items-center gap-2">
+            <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: (entry.color || entry.payload?.fill) as string }} />
+            <span className="text-gray-500 dark:text-gray-400">{entry.name}:</span>
+            <span className="font-semibold text-gray-900 dark:text-gray-50">
+              {formatCurrency(Number(entry.value), currency)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Analytics() {
   const { user } = useAuth();
   const currency = user?.currency || "INR";
@@ -93,6 +140,7 @@ export default function Analytics() {
   const [isCategoryLoading, setIsCategoryLoading] = useState(true);
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [categoryChartType, setCategoryChartType] = useState<"donut" | "bar" | "radar">("donut");
+  const [hoveredSliceIndex, setHoveredSliceIndex] = useState<number | null>(null);
 
   const [trendMonths, setTrendMonths] = useState(6);
   const [trendSeries, setTrendSeries] = useState<TrendSeriesPoint[]>([]);
@@ -117,12 +165,16 @@ export default function Analytics() {
     }
   }, [month, year]);
 
-  const loadTrend = useCallback(async (months: number) => {
+  const loadTrend = useCallback(async (trendMonthsCount: number, m: number, y: number) => {
     setIsTrendLoading(true);
     setTrendError(null);
     try {
-      const { data } = await dashboardApi.trend({ months });
-      setTrendSeries(buildTrendSeries(data.data.expenseTrend, data.data.incomeTrend, months));
+      const { data } = await dashboardApi.trend({ months: trendMonthsCount, month: m, year: y });
+      const series =
+        data.data.granularity === "daily"
+          ? buildDailyTrendSeries(data.data.expenseTrend, data.data.incomeTrend, m, y)
+          : buildMonthlyTrendSeries(data.data.expenseTrend, data.data.incomeTrend, trendMonthsCount);
+      setTrendSeries(series);
     } catch {
       setTrendError("Couldn't load the trend.");
     } finally {
@@ -135,8 +187,8 @@ export default function Analytics() {
   }, [loadCategoryBreakdown]);
 
   useEffect(() => {
-    loadTrend(trendMonths);
-  }, [trendMonths, loadTrend]);
+    loadTrend(trendMonths, month, year);
+  }, [trendMonths, month, year, loadTrend]);
 
   const goToPreviousMonth = () => {
     if (month === 1) {
@@ -268,21 +320,19 @@ export default function Analytics() {
                       outerRadius={90}
                       paddingAngle={2}
                       strokeWidth={0}
+                      onMouseEnter={(_, index) => setHoveredSliceIndex(index)}
+                      onMouseLeave={() => setHoveredSliceIndex(null)}
                     >
                       {categoryData.map((entry, index) => (
                         <Cell
                           key={entry.category}
-                          fill={entry.color || FALLBACK_COLORS[index % FALLBACK_COLORS.length]}
+                          fill={categoryColor(entry.color, index, entry.category)}
+                          fillOpacity={hoveredSliceIndex === null || hoveredSliceIndex === index ? 1 : 0.35}
+                          style={{ cursor: "pointer", transition: "fill-opacity 150ms ease" }}
                         />
                       ))}
                     </Pie>
-                    <Tooltip
-                      formatter={(value: any, _name: any, item: any) => [
-                        formatCurrency(Number(value), currency),
-                        item?.payload?.category,
-                      ]}
-                      contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 13 }}
-                    />
+                    <Tooltip content={<ChartTooltip currency={currency} />} />
                   </PieChart>
                 ) : categoryChartType === "bar" ? (
                   <BarChart data={categoryData} layout="vertical" margin={{ left: 4, right: 12, top: 4, bottom: 4 }}>
@@ -302,15 +352,13 @@ export default function Analytics() {
                       width={110}
                       tick={{ fontSize: 11, fill: "#94a3b8" }}
                     />
-                    <Tooltip
-                      formatter={(value: any) => formatCurrency(Number(value), currency)}
-                      contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 13 }}
-                    />
+                    <Tooltip content={<ChartTooltip currency={currency} />} cursor={{ fill: "rgba(148,163,184,0.12)" }} />
                     <Bar dataKey="total" radius={[0, 6, 6, 0]}>
                       {categoryData.map((entry, index) => (
                         <Cell
                           key={entry.category}
-                          fill={entry.color || FALLBACK_COLORS[index % FALLBACK_COLORS.length]}
+                          fill={categoryColor(entry.color, index, entry.category)}
+                          style={{ cursor: "pointer" }}
                         />
                       ))}
                     </Bar>
@@ -326,10 +374,7 @@ export default function Analytics() {
                       fillOpacity={0.35}
                       strokeWidth={2}
                     />
-                    <Tooltip
-                      formatter={(value: any) => formatCurrency(Number(value), currency)}
-                      contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 13 }}
-                    />
+                    <Tooltip content={<ChartTooltip currency={currency} />} />
                   </RadarChart>
                 )}
               </ResponsiveContainer>
@@ -338,9 +383,16 @@ export default function Analytics() {
             <ul className="space-y-3">
               {categoryData.map((item, index) => {
                 const percent = categoryTotal > 0 ? Math.round((item.total / categoryTotal) * 100) : 0;
-                const color = item.color || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+                const color = categoryColor(item.color, index, item.category);
                 return (
-                  <li key={item.category} className="flex items-center justify-between text-sm">
+                  <li
+                    key={item.category}
+                    onMouseEnter={() => setHoveredSliceIndex(index)}
+                    onMouseLeave={() => setHoveredSliceIndex(null)}
+                    className={`flex items-center justify-between rounded-lg px-1.5 py-1 text-sm transition-colors ${
+                      hoveredSliceIndex === index ? "bg-gray-50 dark:bg-slate-800" : ""
+                    }`}
+                  >
                     <div className="flex items-center gap-2.5">
                       <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
                       <span className="font-medium text-gray-900 dark:text-gray-50">{item.category}</span>
@@ -420,6 +472,7 @@ export default function Analytics() {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12, fill: "#94a3b8" }}
+                  interval={trendMonths === 1 ? "preserveStartEnd" : 0}
                 />
                 <YAxis
                   axisLine={false}
@@ -429,8 +482,8 @@ export default function Analytics() {
                   width={70}
                 />
                 <Tooltip
-                  formatter={(value: any) => formatCurrency(Number(value), currency)}
-                  contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 13 }}
+                  content={<ChartTooltip currency={currency} />}
+                  cursor={{ stroke: "#94a3b8", strokeDasharray: "3 3" }}
                 />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Line
@@ -440,7 +493,7 @@ export default function Analytics() {
                   stroke="#10b981"
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 4 }}
+                  activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff" }}
                 />
                 <Line
                   type="monotone"
@@ -449,7 +502,7 @@ export default function Analytics() {
                   stroke="#ef4444"
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 4 }}
+                  activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff" }}
                 />
               </LineChart>
             </ResponsiveContainer>
