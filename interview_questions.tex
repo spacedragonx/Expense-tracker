@@ -1,0 +1,415 @@
+\documentclass[12pt, a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{tcolorbox}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage{amssymb}
+
+% ── Colors ────────────────────────────────────────────────────────────────────
+\definecolor{emerald}{HTML}{10B981}
+\definecolor{emeralddark}{HTML}{059669}
+\definecolor{slate}{HTML}{334155}
+\definecolor{slatelight}{HTML}{64748B}
+\definecolor{bluehint}{HTML}{3B82F6}
+\definecolor{amberbg}{HTML}{FFF7ED}
+\definecolor{amberframe}{HTML}{F59E0B}
+\definecolor{redflag}{HTML}{EF4444}
+\definecolor{greenbg}{HTML}{F0FDF4}
+\definecolor{greenframe}{HTML}{22C55E}
+\definecolor{bluebg}{HTML}{EFF6FF}
+\definecolor{blueframe}{HTML}{3B82F6}
+
+% ── Hyperref Setup ────────────────────────────────────────────────────────────
+\hypersetup{
+  colorlinks=true,
+  linkcolor=emeralddark,
+  urlcolor=bluehint,
+  pdftitle={Interview Questions — Expense Tracker Project},
+  pdfauthor={Senior Interviewer},
+}
+
+% ── Section Styling ───────────────────────────────────────────────────────────
+\titleformat{\section}
+  {\Large\bfseries\color{emeralddark}}
+  {Round \thesection}{1em}{}
+  [\vspace{-0.5em}\textcolor{emerald}{\rule{\textwidth}{1.5pt}}]
+
+\titleformat{\subsection}
+  {\large\bfseries\color{slate}}
+  {Q\thesubsection.}{0.6em}{}
+
+% ── Header / Footer ──────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{slatelight}{Interview Questions — Expense Tracker}}
+\fancyhead[R]{\small\textcolor{slatelight}{Fresher / Junior Candidate}}
+\fancyfoot[C]{\small\textcolor{slatelight}{\thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ── Custom Environments ──────────────────────────────────────────────────────
+\newtcolorbox{listenfor}{
+  colback=greenbg, colframe=greenframe,
+  coltitle=white, fonttitle=\bfseries,
+  title={What I'm Listening For},
+  boxrule=0.8pt, arc=4pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+}
+
+\newtcolorbox{followup}{
+  colback=bluebg, colframe=blueframe,
+  coltitle=white, fonttitle=\bfseries,
+  title={Follow-Up Probe},
+  boxrule=0.8pt, arc=4pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+}
+
+\newtcolorbox{tipbox}{
+  colback=amberbg, colframe=amberframe,
+  coltitle=white, fonttitle=\bfseries,
+  title={Interviewer Tip},
+  boxrule=0.8pt, arc=4pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Title Page ────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{4cm}
+
+  {\Huge\bfseries\textcolor{emeralddark}{Interview Questions}}\\[0.6cm]
+  {\LARGE\textcolor{slate}{Expense Tracker — MERN Project}}\\[1.8cm]
+
+  {\large\textcolor{slatelight}{For a fresher / candidate with very little experience}}\\[3cm]
+
+  \textcolor{emerald}{\rule{8cm}{1.5pt}}\\[1.2cm]
+
+  {\normalsize\textcolor{slatelight}{%
+    \textbf{Interviewer persona:} Senior full-stack engineer, 10 years of experience.\\[0.4cm]
+    \textbf{Philosophy:} I'm not trying to trick or stump the candidate.\\
+    I want to understand if they \emph{actually built} this, how deeply they\\
+    understand what they wrote, and whether they can reason about\\
+    trade-offs — even if they don't always have the ``right'' answer.%
+  }}
+
+  \vfill
+  {\small\textcolor{slatelight}{Total Duration: $\sim$40--50 minutes \quad|\quad 6 Rounds \quad|\quad 20 Questions}}
+\end{titlepage}
+
+% ── Table of Contents ─────────────────────────────────────────────────────────
+\tableofcontents
+\newpage
+
+% ── Overview Table ────────────────────────────────────────────────────────────
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\textwidth}{>{\bfseries}l X c c}
+  \toprule
+  \textbf{Round} & \textbf{Focus Area} & \textbf{Duration} & \textbf{Questions} \\
+  \midrule
+  1 & Warm-Up \& Project Understanding   & 5--8 min   & 3 \\
+  2 & Backend \& Database Deep-Dive       & 10--12 min & 5 \\
+  3 & Frontend \& React                   & 8--10 min  & 4 \\
+  4 & API Design \& Error Handling        & 5--7 min   & 3 \\
+  5 & DevOps \& Deployment                & 5--7 min   & 3 \\
+  6 & Thinking \& Growth                  & 5 min      & 2 \\
+  \midrule
+  & \textbf{Total} & \textbf{$\sim$40--50 min} & \textbf{20} \\
+  \bottomrule
+\end{tabularx}
+\end{center}
+
+\vspace{1cm}
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  ROUND 1
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Warm-Up \& Project Understanding \textnormal{\textcolor{slatelight}{(5--8 min)}}}
+
+\emph{These ease the candidate in and test whether they truly own the project vs.\ copied it.}
+
+% ── Q1 ──
+\subsection{Walk me through your project in 2 minutes. What problem does it solve, and who would use it?}
+
+\begin{listenfor}
+Can they articulate the purpose clearly? Do they mention MERN stack, auth, CRUD, dashboard? Or do they just say ``it's an expense tracker.''
+\end{listenfor}
+
+% ── Q2 ──
+\subsection{Why did you choose the MERN stack (MongoDB, Express, React, Node) for this project? Would you make the same choice again?}
+
+\begin{listenfor}
+Any reasoning — ``I wanted to learn it'', ``JavaScript everywhere'', ``MongoDB is flexible for user-specific data''. Red flag if they can't explain \emph{why} MongoDB over, say, PostgreSQL.
+\end{listenfor}
+
+% ── Q3 ──
+\subsection{What was the hardest part of building this project? Walk me through how you solved it.}
+
+\begin{listenfor}
+Genuine struggle stories — debugging CORS with cookies, getting Docker multi-stage builds to work, the currency conversion logic, pagination. A candidate who built this will have \emph{stories}.
+\end{listenfor}
+
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  ROUND 2
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Backend \& Database Deep-Dive \textnormal{\textcolor{slatelight}{(10--12 min)}}}
+
+% ── Q4 ──
+\subsection{Your \texttt{User} model stores passwords. Explain step-by-step what happens to a password from the moment a user types it in the registration form to when it's saved in MongoDB.}
+
+\begin{listenfor}
+Frontend sends it over HTTPS $\rightarrow$ Express receives the plain text $\rightarrow$ \texttt{express-validator} validates length $\rightarrow$ Mongoose \texttt{pre("save")} hook fires $\rightarrow$ \texttt{bcrypt.genSalt(12)} $\rightarrow$ \texttt{bcrypt.hash()} $\rightarrow$ hashed string stored. The password field has \texttt{select: false} so it's never returned in queries by default.
+\end{listenfor}
+
+\begin{followup}
+``Why 12 salt rounds? What happens if you increase it to 20?''
+
+\medskip
+\emph{Expected:} Each round doubles computation time — exponential cost increase. 12 rounds is the current industry sweet spot balancing security and performance.
+\end{followup}
+
+% ── Q5 ──
+\subsection{You're using JWTs stored in httpOnly cookies for authentication. Why httpOnly? Why not just store the token in localStorage?}
+
+\begin{listenfor}
+\texttt{httpOnly} cookies can't be accessed by JavaScript, which protects against XSS attacks stealing the token. \texttt{localStorage} is vulnerable to XSS.
+\end{listenfor}
+
+\begin{followup}
+``Your code sets \texttt{sameSite: 'none'} in production but \texttt{'strict'} in development. Why the difference?''
+
+\medskip
+\emph{Expected:} Split deployments on different subdomains in production require \texttt{none}; local dev runs on the same origin so \texttt{strict} is safer.
+\end{followup}
+
+% ── Q6 ──
+\subsection{In your Expense schema, you have compound indexes like \texttt{\{user: 1, date: -1\}} and \texttt{\{user: 1, category: 1, date: -1\}}. Why those specific combinations?}
+
+\begin{listenfor}
+Understanding that queries always filter by \texttt{user} first (data isolation), then sort by \texttt{date} descending (most recent first), and optionally filter by \texttt{category}. The compound index matches these query patterns exactly.
+\end{listenfor}
+
+\begin{followup}
+``Your search feature uses \texttt{\{\$regex: search, \$options: 'i'\}}. Will your index help with that query?''
+
+\medskip
+\emph{Expected:} No — unanchored regex can't use B-tree indexes; it does a collection scan. For a personal tracker it's fine, but at scale you'd need a text index or Atlas Search.
+\end{followup}
+
+% ── Q7 ──
+\subsection{Look at your \texttt{getBudget} controller — it fetches the budget \emph{and} runs an aggregation to calculate spending in a single API call. Why is that better than making two separate calls?}
+
+\begin{listenfor}
+Reduces network round-trips, keeps the UI simpler (one loading state), and the aggregation runs server-side in MongoDB which is faster than fetching raw data and computing in Node.js.
+\end{listenfor}
+
+% ── Q8 ──
+\subsection{Your currency conversion endpoint (\texttt{PUT /api/auth/currency}) updates \emph{every} expense, income, budget, and goal in the database when a user switches currency. What could go wrong?}
+
+\begin{listenfor}
+\textbf{Atomicity} — if one \texttt{updateMany} fails midway, you end up with partially converted data. There's no transaction wrapping the multiple updates. Also, storing converted amounts permanently means you lose the original values. A better approach might be storing amounts in one canonical currency and converting at display time.
+\end{listenfor}
+
+\begin{followup}
+``I see you used MongoDB's \texttt{\$mul} operator instead of loading all documents into Node.js. Why?''
+
+\medskip
+\emph{Expected:} Performance — \texttt{\$mul} runs directly in the database engine without transferring documents over the network.
+\end{followup}
+
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  ROUND 3
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Frontend \& React \textnormal{\textcolor{slatelight}{(8--10 min)}}}
+
+% ── Q9 ──
+\subsection{How does your frontend know if a user is logged in? Walk me through what happens when the app first loads.}
+
+\begin{listenfor}
+\texttt{AuthContext} provides user state. On mount, it calls \texttt{GET /api/auth/me}. If the httpOnly cookie is valid, the server returns user data; the context sets \texttt{user} and \texttt{isAuthenticated}. If not, the user is redirected to login. The cookie is sent automatically because \texttt{axios} is configured with \texttt{withCredentials: true}.
+\end{listenfor}
+
+% ── Q10 ──
+\subsection{You have protected routes in your app. How do you prevent an unauthenticated user from accessing \texttt{/dashboard} or \texttt{/expenses}?}
+
+\begin{listenfor}
+A \texttt{ProtectedRoute} wrapper component that checks \texttt{isAuthenticated} from context and either renders \texttt{<Outlet />} or redirects to \texttt{/login}. Understanding that this is \emph{client-side} protection only — the real security is the \texttt{protect} middleware on the backend that validates the JWT.
+\end{listenfor}
+
+% ── Q11 ──
+\subsection{You recently added Framer Motion animations. Your \texttt{Modal.tsx} now uses \texttt{<AnimatePresence>}. Why can't you just use CSS transitions for the same effect?}
+
+\begin{listenfor}
+CSS can handle enter animations, but \emph{exit} animations are hard — once a component is removed from the DOM (React unmounts it), CSS has no way to animate it ``out.'' \texttt{AnimatePresence} detects when children are removed and keeps them in the DOM long enough to run the exit animation before actually unmounting.
+\end{listenfor}
+
+\begin{followup}
+``In your \texttt{AppShell.tsx}, you use \texttt{key=\{location.pathname\}} on \texttt{<motion.main>}. Why is the key important?''
+
+\medskip
+\emph{Expected:} React uses the key to determine identity. When the pathname changes, the key changes, React treats it as a \emph{new} component, unmounts the old one (triggering exit animation) and mounts the new one (triggering enter animation). Without the key, React would just re-render the same component with no animation.
+\end{followup}
+
+% ── Q12 ──
+\subsection{Your Dashboard page makes multiple API calls (\texttt{/summary}, \texttt{/spending-by-category}, \texttt{/trend}, \texttt{/goals}). How do you handle the loading state? What does the user see while data loads?}
+
+\begin{listenfor}
+Skeleton loading components (\texttt{Skeleton}, \texttt{ActivityFeedSkeleton}). Each section loads independently — the hero balance can show up before the spending chart is ready. This is better than a single full-page spinner because it gives perceived performance.
+\end{listenfor}
+
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  ROUND 4
+% ══════════════════════════════════════════════════════════════════════════════
+\section{API Design \& Error Handling \textnormal{\textcolor{slatelight}{(5--7 min)}}}
+
+% ── Q13 ──
+\subsection{Your \texttt{POST /api/expenses/:id/duplicate} endpoint clones an expense. Why did you make this a POST instead of, say, GET or PUT?}
+
+\begin{listenfor}
+POST because it \emph{creates} a new resource (side effect). GET should be idempotent and safe — calling it twice shouldn't create two copies. PUT is for updating an existing resource, not creating new ones. This shows understanding of REST semantics.
+\end{listenfor}
+
+% ── Q14 ──
+\subsection{You use \texttt{express-validator} for input validation on create routes, but your update routes only rely on Mongoose's \texttt{runValidators: true}. Is that intentional? What's the difference?}
+
+\begin{listenfor}
+Honesty — this might be an oversight. \texttt{express-validator} runs \emph{before} hitting the database and gives cleaner error messages. Mongoose validators run at the database layer and throw different error shapes. Ideally both routes should have consistent validation.
+\end{listenfor}
+
+\begin{tipbox}
+This question tests intellectual honesty. A great candidate will say ``That's actually inconsistent, I should fix that.'' A weaker one will try to justify it as intentional.
+\end{tipbox}
+
+% ── Q15 ──
+\subsection{You have a global error handler middleware. What happens if an async controller throws an unhandled error? Show me the flow.}
+
+\begin{listenfor}
+\texttt{express-async-handler} wraps each controller $\rightarrow$ catches the rejected promise $\rightarrow$ passes the error to \texttt{next()} $\rightarrow$ Express routes it to the \texttt{errorHandler} middleware $\rightarrow$ which sends \texttt{\{success: false, message, stack\}} (stack hidden in production). Without \texttt{asyncHandler}, Express would crash or hang on unhandled promise rejections.
+\end{listenfor}
+
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  ROUND 5
+% ══════════════════════════════════════════════════════════════════════════════
+\section{DevOps \& Deployment \textnormal{\textcolor{slatelight}{(5--7 min)}}}
+
+% ── Q16 ──
+\subsection{You have a two-stage Dockerfile for the backend. Explain what multi-stage builds are and why you use them.}
+
+\begin{listenfor}
+Stage 1 installs all dependencies (including devDependencies like TypeScript) and compiles. Stage 2 starts fresh with only production dependencies and the compiled output. The final image is smaller (no TS compiler, no dev tools), more secure (less attack surface), and faster to deploy.
+\end{listenfor}
+
+% ── Q17 ──
+\subsection{Your \texttt{docker-compose.prod.yml} adds a Caddy reverse proxy. Why not just expose the Nginx frontend directly on port 443?}
+
+\begin{listenfor}
+Caddy provides \emph{automatic} HTTPS — it handles Let's Encrypt certificate provisioning, renewal, and HTTP$\rightarrow$HTTPS redirect with zero configuration. Doing this manually with Nginx requires certbot, cron jobs, config files. Also, the two-tier architecture (Caddy $\rightarrow$ Nginx $\rightarrow$ Express) separates concerns: Caddy handles TLS termination, Nginx handles static serving and API proxying.
+\end{listenfor}
+
+% ── Q18 ──
+\subsection{In your frontend Dockerfile, you deliberately skip copying \texttt{package-lock.json}. That's unusual — why?}
+
+\begin{listenfor}
+There's a documented reason — Windows-generated lockfiles sometimes miss Linux-specific native binaries like \texttt{@rollup/rollup-linux-x64-musl} (npm issue \#4828). Running \texttt{npm install} from scratch inside the Alpine container ensures the correct platform-specific packages are resolved. This is a real-world cross-platform gotcha.
+\end{listenfor}
+
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  ROUND 6
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Thinking \& Growth \textnormal{\textcolor{slatelight}{(5 min)}}}
+
+% ── Q19 ──
+\subsection{If this app had 10,000 users and each had 5,000 expenses, what's the first thing that would break?}
+
+\begin{listenfor}
+Thoughtful reasoning, not necessarily the ``right'' answer. Good answers include:
+\begin{itemize}[nosep]
+  \item The regex search doing collection scans
+  \item The dashboard aggregation queries getting slow without proper indexing
+  \item The in-place currency conversion updating millions of documents
+  \item MongoDB Atlas free tier limits
+  \item No caching layer (Redis) for repeated dashboard calls
+  \item Single Node.js process (no clustering / PM2)
+\end{itemize}
+\end{listenfor}
+
+% ── Q20 ──
+\subsection{If I gave you one more week on this project, what would you build next and why?}
+
+\begin{listenfor}
+Self-awareness about gaps in their own codebase. Strong answers might reference:
+\begin{itemize}[nosep]
+  \item Actually sending the password reset emails (currently a TODO)
+  \item Wiring up the \texttt{multer} and \texttt{node-cron} dependencies that are installed but unused
+  \item Adding CI/CD (GitHub Actions)
+  \item Writing tests (the test infrastructure is set up but no tests exist)
+  \item Adding a root \texttt{.gitignore} to prevent accidental \texttt{.env} commits
+  \item Building out the Goals page (currently a stub despite the API being complete)
+  \item Removing unused dependencies (\texttt{chart.js}, \texttt{react-chartjs-2})
+  \item Budget notification alerts that actually trigger
+\end{itemize}
+\end{listenfor}
+
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+%  SCORING RUBRIC
+% ══════════════════════════════════════════════════════════════════════════════
+\section*{Scoring Rubric}
+\addcontentsline{toc}{section}{Scoring Rubric}
+
+{\small\textcolor{slatelight}{\emph{Internal — not shared with candidate.}}}
+
+\vspace{0.5cm}
+
+\renewcommand{\arraystretch}{1.6}
+\begin{tabularx}{\textwidth}{c X}
+  \toprule
+  \textbf{Score} & \textbf{Description} \\
+  \midrule
+  $\bigstar\bigstar\bigstar\bigstar\bigstar$
+    & Answers most questions confidently. Can explain \emph{why} behind decisions.
+      Acknowledges what they'd improve. Thinks about trade-offs. \\
+  $\bigstar\bigstar\bigstar\bigstar\phantom{\bigstar}$
+    & Solid understanding of 70\%+ of their codebase. Gets tripped up on deeper
+      questions (indexing, atomicity) but reasons through them with hints. \\
+  $\bigstar\bigstar\bigstar\phantom{\bigstar\bigstar}$
+    & Knows what the code does but not always \emph{why}. Struggles with security
+      and performance questions. Likely followed tutorials closely. \\
+  $\bigstar\bigstar\phantom{\bigstar\bigstar\bigstar}$
+    & Can describe the project at a surface level but can't explain implementation
+      details. Likely copy-pasted significant portions. \\
+  $\bigstar\phantom{\bigstar\bigstar\bigstar\bigstar}$
+    & Cannot explain basic project decisions. Red flag for authorship. \\
+  \bottomrule
+\end{tabularx}
+
+\vspace{1cm}
+
+\begin{tipbox}
+\textbf{For a fresher}, scoring $\bigstar\bigstar\bigstar$--$\bigstar\bigstar\bigstar\bigstar$ is excellent. The goal isn't perfection — it's to see genuine ownership, curiosity, and the ability to reason about code they wrote. A candidate who says ``I'm not sure, but I think it might be because\ldots'' is far better than one who freezes or guesses confidently with wrong answers.
+\end{tipbox}
+
+\end{document}
