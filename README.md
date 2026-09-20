@@ -1,5 +1,5 @@
 <div align="center">
-<img src="./assets/logos/Expense%20Tracker%20logo.png" alt="Expense Tracker Logo" width="300" />
+<img src="./assets/logos/Github%20Logo.jpg" alt="Expense Tracker Logo" width="300" />
 
 # Full-Stack MERN Expense Tracker
 <br>
