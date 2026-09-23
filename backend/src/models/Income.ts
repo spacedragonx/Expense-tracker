@@ -56,8 +56,13 @@ const incomeSchema = new Schema<IIncome>(
 );
 
 incomeSchema.index({ user: 1, date: -1 });
-// Sparse unique index ensures no two statement imports share the same fingerprint per user
-incomeSchema.index({ user: 1, dedupHash: 1 }, { unique: true, sparse: true });
+// Unique per user, but only for documents that actually carry a fingerprint (statement imports).
+// Partial, not `sparse`: a compound sparse index still indexes documents that have `user`, so
+// manual incomes (no dedupHash) collided as { user, dedupHash: null } — same bug as Expense.
+incomeSchema.index(
+  { user: 1, dedupHash: 1 },
+  { unique: true, partialFilterExpression: { dedupHash: { $type: "string" } } }
+);
 
 /**
  * Compute a stable deduplication hash.

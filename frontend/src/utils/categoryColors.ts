@@ -1,23 +1,26 @@
 /**
- * Vivid fallback palette used when a category has no color set at all.
- * These are all deliberately distinct and non-grey so every category looks different.
+ * Fallback palette used when a category has no color set at all, and the shared
+ * source of chart colours on the landing page.
+ *
+ * Okabe–Ito colour-blind-safe set (minus black / too-light yellow) plus four extra
+ * hues. CIEDE2000 worst pair: ΔE≈18.5 for normal vision, ≥7 under deuteranopia /
+ * protanopia simulation; every colour keeps ≥2.3:1 contrast on white and dark slate.
+ * The previous 15-colour list had neighbours at ΔE≈5 (violet/purple) and ≈0.3 under
+ * colour-blind simulation.
+ *
+ * Keep in sync with AUTO_CATEGORY_PALETTE in backend/src/utils/categoryColor.ts.
  */
 export const FALLBACK_COLORS = [
-  "#10b981",
-  "#3b82f6",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#06b6d4",
-  "#f97316",
-  "#84cc16",
-  "#ec4899",
-  "#e11d48",
-  "#0891b2",
-  "#d97706",
-  "#16a34a",
-  "#7c3aed",
-  "#db2777",
+  "#e69f00", // orange
+  "#56b4e9", // sky blue
+  "#009e73", // bluish green
+  "#0072b2", // blue
+  "#d55e00", // vermillion
+  "#cc79a7", // reddish purple
+  "#d6153e", // crimson
+  "#9849ed", // violet
+  "#8b9b46", // olive
+  "#7d89fb", // periwinkle
 ];
 
 /**

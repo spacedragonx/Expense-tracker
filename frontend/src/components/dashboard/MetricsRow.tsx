@@ -16,9 +16,9 @@ interface MetricsRowProps {
 }
 
 const TONE_CLASSES: Record<Metric["tone"], string> = {
-  positive: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-500",
-  negative: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400",
-  neutral: "bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-500",
+  positive: "bg-fog text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-500",
+  negative: "bg-fog text-ember dark:bg-rose-500/10 dark:text-rose-400",
+  neutral: "bg-ash text-graphite dark:bg-primary-500/10 dark:text-primary-500",
 };
 
 /**
@@ -64,12 +64,12 @@ function MetricCell({
 }) {
   return (
     <div className="card flex items-center gap-3 !p-3.5 transition-transform duration-200 hover:-translate-y-0.5">
-      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-semibold ${TONE_CLASSES[tone]}`}>
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-sm dark:rounded-xl text-sm font-semibold ${TONE_CLASSES[tone]}`}>
         {iconLabel}
       </div>
       <div className="min-w-0">
-        <p className="truncate text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-        <p className="truncate text-base font-semibold text-gray-900 dark:text-gray-50">{display}</p>
+        <p className="truncate text-xs font-medium text-graphite/60 dark:text-gray-400">{label}</p>
+        <p className="truncate text-base font-semibold text-graphite dark:text-gray-50">{display}</p>
       </div>
     </div>
   );

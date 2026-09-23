@@ -78,8 +78,14 @@ const expenseSchema = new Schema<IExpense>(
 // Common query patterns: list by user within a date range, filter by category
 expenseSchema.index({ user: 1, date: -1 });
 expenseSchema.index({ user: 1, category: 1, date: -1 });
-// Sparse unique index ensures no two statement imports share the same fingerprint per user
-expenseSchema.index({ user: 1, dedupHash: 1 }, { unique: true, sparse: true });
+// Unique per user, but only for documents that actually carry a fingerprint (statement imports).
+// This must be a *partial* index, not `sparse`: a compound sparse index still indexes any document
+// that has ANY of its keys, and every expense has `user`, so manual expenses (no dedupHash) were
+// all stored as { user, dedupHash: null } and the second one per user threw E11000.
+expenseSchema.index(
+  { user: 1, dedupHash: 1 },
+  { unique: true, partialFilterExpression: { dedupHash: { $type: "string" } } }
+);
 
 /**
  * Compute a stable deduplication hash.

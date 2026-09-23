@@ -17,13 +17,15 @@ import Category from "../models/Category";
  * (from the backend/ directory, with MONGO_URI set in .env)
  */
 const DEFAULT_EXPENSE_CATEGORIES: { name: string; icon: string; color: string }[] = [
-  { name: "Housing", icon: "home", color: "#3b82f6" },
-  { name: "Transportation", icon: "car", color: "#f59e0b" },
-  { name: "Food & Dining", icon: "utensils", color: "#ef4444" },
-  { name: "Utilities", icon: "zap", color: "#06b6d4" },
-  { name: "Healthcare", icon: "heart-pulse", color: "#ec4899" },
-  { name: "Lifestyle & Entertainment", icon: "popcorn", color: "#8b5cf6" },
-  { name: "Debt & Obligations", icon: "landmark", color: "#64748b" },
+  // Colours come from AUTO_CATEGORY_PALETTE (colour-blind-tested). Auto-created
+  // categories skip colours already used here, so they start out distinct from these.
+  { name: "Housing", icon: "home", color: "#0072b2" }, // blue
+  { name: "Transportation", icon: "car", color: "#e69f00" }, // orange
+  { name: "Food & Dining", icon: "utensils", color: "#d55e00" }, // vermillion
+  { name: "Utilities", icon: "zap", color: "#56b4e9" }, // sky blue
+  { name: "Healthcare", icon: "heart-pulse", color: "#009e73" }, // bluish green
+  { name: "Lifestyle & Entertainment", icon: "popcorn", color: "#cc79a7" }, // reddish purple
+  { name: "Debt & Obligations", icon: "landmark", color: "#d6153e" }, // crimson
 ];
 
 async function seed() {

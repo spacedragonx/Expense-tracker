@@ -56,13 +56,21 @@ async function resolveCategoryId(name: string, userId: string, kind: "expense" |
 
   // 3. Only create a new user-specific category if it truly doesn't exist anywhere
   if (!cat) {
+    // Colours this user already sees (system defaults + their own), so the new
+    // category doesn't land on a colour that's already taken.
+    const existing = await Category.find({ kind, $or: [{ user: userId }, { user: null }] })
+      .select("color")
+      .lean();
     try {
       cat = await Category.create({
         user: userId,
         name: name || "Other",
         kind: kind,
         icon: "tag",
-        color: colorForCategoryName(name || "Other"),
+        color: colorForCategoryName(
+          name || "Other",
+          existing.map((c) => c.color)
+        ),
         isDefault: false,
       });
     } catch (err: any) {
@@ -236,25 +244,27 @@ router.post(
       throw new Error("All submitted transactions are already in the database (duplicates).");
     }
 
-    // Resolve expense category names → ObjectIds, then insert
-    const expenseDocs = await Promise.all(
-      expenseToInsert.map(async (txn) => {
-        const categoryId = await resolveCategoryId(txn.category, userId, "expense");
-        return {
-          user: userId,
-          title: txn.description,
-          amount: txn.amount,
-          currency: "INR",
-          date: new Date(txn.date),
-          category: categoryId,
-          paymentMethod: "bank_transfer" as const,
-          source: "statement_import" as const,
-          dedupHash: txn.dedupHash,
-          recurrence: { isRecurring: false },
-          tags: [],
-        };
-      })
-    );
+    // Resolve each distinct expense category name → ObjectId once, sequentially, so a
+    // category created earlier in this import is visible when picking the next one's
+    // colour (concurrent creation would all read the same "used" set and collide).
+    const categoryIdByName = new Map<string, string>();
+    for (const name of new Set(expenseToInsert.map((t) => t.category))) {
+      categoryIdByName.set(name, await resolveCategoryId(name, userId, "expense"));
+    }
+
+    const expenseDocs = expenseToInsert.map((txn) => ({
+      user: userId,
+      title: txn.description,
+      amount: txn.amount,
+      currency: "INR",
+      date: new Date(txn.date),
+      category: categoryIdByName.get(txn.category)!,
+      paymentMethod: "bank_transfer" as const,
+      source: "statement_import" as const,
+      dedupHash: txn.dedupHash,
+      recurrence: { isRecurring: false },
+      tags: [],
+    }));
 
     // Map income category labels → the Income model's fixed source enum, then insert
     const incomeDocs = incomeToInsert.map((txn) => ({

@@ -2,6 +2,7 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianG
 import EmptyState from "@/components/common/EmptyState";
 import { BarChart3 } from "lucide-react";
 import { formatCurrency } from "@/utils/format";
+import { useTheme } from "@/context/ThemeContext";
 import type { MonthPoint } from "@/utils/trend";
 
 interface SpendingChartProps {
@@ -21,16 +22,18 @@ function SpendingTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-lg border border-gray-100 bg-white px-3 py-2 text-xs shadow-lift dark:border-slate-700 dark:bg-slate-800">
-      <p className="mb-1 font-medium text-gray-900 dark:text-gray-50">{point.label}</p>
-      <p className="text-emerald-600 dark:text-emerald-500">Income {formatCurrency(point.income, currency)}</p>
-      <p className="text-rose-500 dark:text-rose-400">Expenses {formatCurrency(point.expense, currency)}</p>
+    <div className="rounded-sm dark:rounded-lg border border-ash bg-white px-3 py-2 text-xs shadow-editorial dark:border-slate-700 dark:bg-slate-800">
+      <p className="mb-1 font-medium text-graphite dark:text-gray-50">{point.label}</p>
+      <p className="text-brass dark:text-emerald-500">Income {formatCurrency(point.income, currency)}</p>
+      <p className="text-ember dark:text-rose-400">Expenses {formatCurrency(point.expense, currency)}</p>
     </div>
   );
 }
 
 /** Income vs. expense overview — one of the dashboard's visual anchors. */
 export default function SpendingChart({ series, currency }: SpendingChartProps) {
+  const { resolvedTheme } = useTheme();
+
   if (series.length === 0) {
     return (
       <EmptyState
@@ -41,14 +44,17 @@ export default function SpendingChart({ series, currency }: SpendingChartProps) 
     );
   }
 
+  const incomeColor = resolvedTheme === "dark" ? "#10b981" : "#816729"; // Emerald / Brass
+  const expenseColor = resolvedTheme === "dark" ? "#fb7185" : "#FF682C"; // Rose / Ember
+
   return (
     <div>
-      <div className="mb-3 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+      <div className="mb-3 flex items-center gap-4 text-xs text-graphite/60 dark:text-gray-400">
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" /> Income
+          <span className="h-2 w-2 rounded-full bg-brass dark:bg-emerald-500" /> Income
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-rose-400" /> Expenses
+          <span className="h-2 w-2 rounded-full bg-ember dark:bg-rose-400" /> Expenses
         </span>
       </div>
       <div className="h-64">
@@ -56,21 +62,21 @@ export default function SpendingChart({ series, currency }: SpendingChartProps) 
           <AreaChart data={series} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
             <defs>
               <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10b981" stopOpacity={0.22} />
-                <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                <stop offset="0%" stopColor={incomeColor} stopOpacity={0.12} />
+                <stop offset="100%" stopColor={incomeColor} stopOpacity={0} />
               </linearGradient>
               <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#fb7185" stopOpacity={0.18} />
-                <stop offset="100%" stopColor="#fb7185" stopOpacity={0} />
+                <stop offset="0%" stopColor={expenseColor} stopOpacity={0.1} />
+                <stop offset="100%" stopColor={expenseColor} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} strokeDasharray="3 6" className="stroke-gray-100 dark:stroke-slate-800" />
+            <CartesianGrid vertical={false} strokeDasharray="3 6" className="stroke-ash dark:stroke-slate-800" />
             <XAxis
               dataKey="label"
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 11, fill: "currentColor" }}
-              className="text-gray-400 dark:text-gray-500"
+              className="text-graphite/40 dark:text-gray-500"
             />
             <YAxis
               axisLine={false}
@@ -83,8 +89,8 @@ export default function SpendingChart({ series, currency }: SpendingChartProps) 
               type="monotone"
               dataKey="income"
               name="Income"
-              stroke="#10b981"
-              strokeWidth={2}
+              stroke={incomeColor}
+              strokeWidth={1.5}
               fill="url(#incomeGradient)"
               isAnimationActive
               animationDuration={800}
@@ -94,8 +100,8 @@ export default function SpendingChart({ series, currency }: SpendingChartProps) 
               type="monotone"
               dataKey="expense"
               name="Expenses"
-              stroke="#fb7185"
-              strokeWidth={2}
+              stroke={expenseColor}
+              strokeWidth={1.5}
               fill="url(#expenseGradient)"
               isAnimationActive
               animationDuration={800}

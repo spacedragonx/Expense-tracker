@@ -13,33 +13,33 @@
 
 @layer components {
   .card {
-    @apply rounded-2xl bg-white dark:bg-slate-800 shadow-soft border border-gray-100 dark:border-slate-700 p-5;
+    @apply rounded-md dark:rounded-2xl bg-ivory dark:bg-slate-800 shadow-editorial dark:shadow-soft border border-ash dark:border-slate-700 p-5;
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-xl bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors;
+    @apply inline-flex items-center justify-center rounded-sm dark:rounded-xl bg-graphite dark:bg-primary-600 px-4 py-2 text-sm font-medium text-ivory dark:text-white hover:bg-black dark:hover:bg-primary-700 transition-colors;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-xl border border-gray-200 dark:border-slate-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors;
+    @apply inline-flex items-center justify-center rounded-sm dark:rounded-xl border border-graphite/20 dark:border-slate-600 px-4 py-2 text-sm font-medium text-graphite dark:text-gray-200 hover:bg-white dark:hover:bg-slate-700 transition-colors;
   }
   .input {
-    @apply w-full rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500;
+    @apply w-full rounded-sm dark:rounded-xl border border-ash dark:border-slate-600 bg-fog dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-graphite dark:focus:ring-2 dark:focus:ring-primary-500;
   }
 
   /* Redesign additions below — additive only, existing primitives above are untouched. */
 
   /* A section that sits directly on the page surface instead of inside a bordered card. */
   .surface-flat {
-    @apply rounded-2xl;
+    @apply rounded-md dark:rounded-2xl;
   }
 
   /* Lighter-weight card for nested/secondary content (no shadow, thinner border). */
   .card-subtle {
-    @apply rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-700/60;
+    @apply rounded-md dark:rounded-2xl bg-fog dark:bg-slate-800/60 border border-ash dark:border-slate-700/60;
   }
 
   /* Shimmering skeleton block for loading states. */
   .skeleton {
-    @apply relative overflow-hidden rounded-lg bg-gray-100 dark:bg-slate-800;
+    @apply relative overflow-hidden rounded-md dark:rounded-lg bg-ash dark:bg-slate-800;
   }
   .skeleton::after {
     content: "";

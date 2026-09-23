@@ -47,11 +47,25 @@ const NAV_GROUPS = [
  */
 export default function Sidebar() {
   return (
-    <aside className="hidden md:flex md:w-60 md:flex-col md:border-r md:border-gray-100 dark:md:border-slate-800 md:bg-white md:dark:bg-slate-900 md:min-h-screen">
-      <div className="px-5 py-6">
-        <span className="text-lg font-semibold tracking-tight text-primary-700 dark:text-primary-500">
+    <aside className="hidden md:flex md:w-60 md:flex-col md:border-r md:border-ash dark:md:border-slate-800 md:bg-ivory md:dark:bg-slate-900 md:min-h-screen">
+      <div className="flex items-center justify-between px-5 py-5">
+        <span className="text-lg font-display font-bold tracking-tight text-graphite dark:text-primary-500">
           Expense Tracker
         </span>
+        <NavLink
+          to="/settings"
+          aria-label="Settings"
+          title="Settings"
+          className={({ isActive }) =>
+            `rounded-md dark:rounded-xl p-2 transition-colors duration-150 ${
+              isActive
+                ? "bg-fog text-graphite dark:bg-primary-500/10 dark:text-primary-500"
+                : "text-gray-500 hover:bg-fog dark:text-gray-300 dark:hover:bg-slate-800"
+            }`
+          }
+        >
+          <SettingsIcon size={18} />
+        </NavLink>
       </div>
 
       <nav className="flex-1 space-y-5 px-3">
@@ -66,10 +80,10 @@ export default function Sidebar() {
                   key={to}
                   to={to}
                   className={({ isActive }) =>
-                    `group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+                    `group relative flex items-center gap-3 rounded-md dark:rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-150 ${
                       isActive
-                        ? "bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-500"
-                        : "text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-slate-800"
+                        ? "bg-fog text-graphite dark:bg-primary-500/10 dark:text-primary-500"
+                        : "text-gray-600 hover:bg-fog dark:text-gray-300 dark:hover:bg-slate-800"
                     }`
                   }
                 >
@@ -78,11 +92,11 @@ export default function Sidebar() {
                       {isActive && (
                         <motion.span
                           layoutId="sidebar-active-indicator"
-                          className="absolute left-0 h-4 w-0.5 rounded-full bg-primary-500"
+                          className="absolute left-0 h-4 w-0.5 rounded-full bg-ember dark:bg-primary-500"
                           transition={{ type: "spring", stiffness: 500, damping: 40 }}
                         />
                       )}
-                      <Icon size={18} className="transition-transform duration-150 group-hover:scale-105" />
+                      <Icon size={18} strokeWidth={isActive ? 2 : 1.5} className="transition-transform duration-150 group-hover:scale-105" />
                       {label}
                     </>
                   )}
@@ -92,22 +106,6 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
-
-      <div className="border-t border-gray-100 px-3 py-3 dark:border-slate-800">
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            `flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-150 ${
-              isActive
-                ? "bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-500"
-                : "text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-slate-800"
-            }`
-          }
-        >
-          <SettingsIcon size={18} />
-          Settings
-        </NavLink>
-      </div>
     </aside>
   );
 }

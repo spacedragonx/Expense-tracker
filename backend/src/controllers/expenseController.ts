@@ -91,7 +91,9 @@ export const duplicateExpense = asyncHandler(async (req: Request, res: Response)
     res.status(404);
     throw new Error("Expense not found");
   }
-  const { _id, createdAt, updatedAt, ...rest } = original;
-  const copy = await Expense.create({ ...rest, title: `${rest.title} (copy)`, date: new Date() });
+  // A copy is a manual entry: it must not inherit the original's import fingerprint (which is
+  // unique per user) or its statement_import source.
+  const { _id, createdAt, updatedAt, dedupHash, source, ...rest } = original;
+  const copy = await Expense.create({ ...rest, source: "manual", title: `${rest.title} (copy)`, date: new Date() });
   res.status(201).json({ success: true, data: copy });
 });

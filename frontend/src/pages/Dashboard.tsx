@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Receipt, Wallet, Target, AlertTriangle } from "lucide-react";
+import { motion } from "motion/react";
 import dashboardApi, { SpendingByCategoryItem, TrendResponse } from "@/api/dashboardApi";
 import goalApi from "@/api/goalApi";
 import { useAuth } from "@/context/AuthContext";
@@ -22,6 +23,19 @@ function greetingForNow() {
   if (hour < 18) return "Good afternoon";
   return "Good evening";
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+};
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -114,19 +128,26 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
+    <motion.div 
+      variants={containerVariants} 
+      initial="hidden" 
+      animate="visible" 
+      className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]"
+    >
       {/* MAIN — hero balance, spending overview, recent activity (~70-75%) */}
       <div className="space-y-6">
         {summaryLoading || !summary ? (
           <HeroBalanceSkeleton />
         ) : (
-          <HeroBalance
-            totalBalance={summary.totalBalance}
-            changePercent={trendLoading ? null : changePercent}
-            series={series}
-            currency={currency}
-            greeting={`${greetingForNow()}${firstName ? `, ${firstName}` : ""}`}
-          />
+          <motion.div variants={itemVariants}>
+            <HeroBalance
+              totalBalance={summary.totalBalance}
+              changePercent={trendLoading ? null : changePercent}
+              series={series}
+              currency={currency}
+              greeting={`${greetingForNow()}${firstName ? `, ${firstName}` : ""}`}
+            />
+          </motion.div>
         )}
 
         {summaryLoading || !summary ? (
@@ -136,28 +157,34 @@ export default function Dashboard() {
             <MetricSkeleton />
           </div>
         ) : (
-          <MetricsRow
-            income={summary.monthlyIncome}
-            expenses={summary.monthlyExpenses}
-            savingsRate={savingsRate}
-            currency={currency}
-          />
+          <motion.div variants={itemVariants}>
+            <MetricsRow
+              income={summary.monthlyIncome}
+              expenses={summary.monthlyExpenses}
+              savingsRate={savingsRate}
+              currency={currency}
+            />
+          </motion.div>
         )}
 
-        <Card>
-          <h2 className="mb-1 text-sm font-semibold text-gray-900 dark:text-gray-50">Spending overview</h2>
-          <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">Income vs. expenses over the last 6 months</p>
-          {trendLoading ? <Skeleton className="h-64 w-full rounded-xl" /> : <SpendingChart series={series} currency={currency} />}
-        </Card>
+        <motion.div variants={itemVariants}>
+          <Card>
+            <h2 className="mb-1 text-sm font-semibold text-graphite dark:text-gray-50">Spending overview</h2>
+            <p className="mb-4 text-xs text-graphite/60 dark:text-gray-400">Income vs. expenses over the last 6 months</p>
+            {trendLoading ? <Skeleton className="h-64 w-full rounded-md dark:rounded-xl" /> : <SpendingChart series={series} currency={currency} />}
+          </Card>
+        </motion.div>
 
-        <Card>
-          <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-gray-50">Recent activity</h2>
-          {summaryLoading || !summary ? (
-            <ActivityFeedSkeleton />
-          ) : (
-            <ActivityFeed transactions={summary.recentTransactions} currency={currency} />
-          )}
-        </Card>
+        <motion.div variants={itemVariants}>
+          <Card>
+            <h2 className="mb-4 text-sm font-semibold text-graphite dark:text-gray-50">Recent activity</h2>
+            {summaryLoading || !summary ? (
+              <ActivityFeedSkeleton />
+            ) : (
+              <ActivityFeed transactions={summary.recentTransactions} currency={currency} />
+            )}
+          </Card>
+        </motion.div>
       </div>
 
       {/* SUPPORT — insights, goals, quick actions (~25-30%) */}
@@ -169,53 +196,66 @@ export default function Dashboard() {
             <Skeleton className="h-3 w-32" />
           </div>
         ) : (
-          <FinancialPulse series={series} topCategory={topCategory} currency={currency} />
+          <motion.div variants={itemVariants}>
+            <FinancialPulse series={series} topCategory={topCategory} currency={currency} />
+          </motion.div>
         )}
 
-        <Card>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-50">Where it went</h2>
-            <Link to="/analytics" className="text-xs font-medium text-primary-600 hover:underline dark:text-primary-500">
-              Details
-            </Link>
-          </div>
-          {categoryLoading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-44 w-full rounded-xl" />
-              <Skeleton className="h-3 w-32" />
+        <motion.div variants={itemVariants}>
+          <Card>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-graphite dark:text-gray-50">Where it went</h2>
+              <Link to="/analytics" className="text-xs font-medium text-graphite/60 hover:text-graphite hover:underline dark:text-primary-500">
+                Details
+              </Link>
             </div>
-          ) : (
-            <CategorySplit data={categories} currency={currency} />
-          )}
-        </Card>
+            {categoryLoading ? (
+              <div className="flex items-center gap-6">
+                <Skeleton className="h-36 w-36 shrink-0 rounded-full" />
+                <div className="min-w-0 flex-1 space-y-3">
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-3/4" />
+                  <Skeleton className="h-3 w-4/5" />
+                  <Skeleton className="h-3 w-2/3" />
+                </div>
+              </div>
+            ) : (
+              <CategorySplit data={categories} currency={currency} />
+            )}
+          </Card>
+        </motion.div>
 
-        <Card>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-50">Goals</h2>
-            <Link to="/goals" className="text-xs font-medium text-primary-600 hover:underline dark:text-primary-500">
-              Manage
-            </Link>
-          </div>
-          {goalsLoading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-12 w-full rounded-xl" />
-              <Skeleton className="h-12 w-full rounded-xl" />
+        <motion.div variants={itemVariants}>
+          <Card>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-graphite dark:text-gray-50">Goals</h2>
+              <Link to="/goals" className="text-xs font-medium text-graphite/60 hover:text-graphite hover:underline dark:text-primary-500">
+                Manage
+              </Link>
             </div>
-          ) : (
-            <GoalsWidget goals={goals} currency={currency} />
-          )}
-        </Card>
+            {goalsLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-12 w-full rounded-md dark:rounded-xl" />
+                <Skeleton className="h-12 w-full rounded-md dark:rounded-xl" />
+              </div>
+            ) : (
+              <GoalsWidget goals={goals} currency={currency} />
+            )}
+          </Card>
+        </motion.div>
 
-        <Card>
-          <h2 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-50">Quick actions</h2>
-          <div className="space-y-1.5">
-            <QuickActionLink to="/expenses?add=1" label="Add expense" icon={Receipt} />
-            <QuickActionLink to="/income?add=1" label="Add income" icon={Wallet} />
-            <QuickActionLink to="/goals" label="Add goal" icon={Target} />
-          </div>
-        </Card>
+        <motion.div variants={itemVariants}>
+          <Card>
+            <h2 className="mb-3 text-sm font-semibold text-graphite dark:text-gray-50">Quick actions</h2>
+            <div className="space-y-1.5">
+              <QuickActionLink to="/expenses?add=1" label="Add expense" icon={Receipt} />
+              <QuickActionLink to="/income?add=1" label="Add income" icon={Wallet} />
+              <QuickActionLink to="/goals" label="Add goal" icon={Target} />
+            </div>
+          </Card>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -223,10 +263,10 @@ function QuickActionLink({ to, label, icon: Icon }: { to: string; label: string;
   return (
     <Link
       to={to}
-      className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-slate-800"
+      className="flex items-center gap-2.5 rounded-md dark:rounded-xl px-2.5 py-2 text-sm font-medium text-graphite transition-colors hover:bg-fog dark:text-gray-200 dark:hover:bg-slate-800"
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-500">
-        <Icon size={15} />
+      <span className="flex h-8 w-8 items-center justify-center rounded-sm dark:rounded-lg bg-ash text-graphite dark:bg-primary-500/10 dark:text-primary-500">
+        <Icon size={15} strokeWidth={1.5} />
       </span>
       {label}
     </Link>

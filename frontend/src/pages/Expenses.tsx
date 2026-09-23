@@ -9,6 +9,7 @@ import Card from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import ExpenseFormModal from "@/components/expenses/ExpenseFormModal";
 import { formatCurrency, formatDate } from "@/utils/format";
+import { resolveCategoryIcon, resolveCategoryColor, getCategoryFromField } from "@/utils/categoryIcon";
 import type { Category, Expense } from "@/types";
 
 const PAGE_SIZE = 20;
@@ -161,8 +162,8 @@ export default function Expenses() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-50">Expenses</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Log, filter, and manage every expense.</p>
+          <h1 className="text-xl font-semibold text-graphite dark:text-gray-50">Expenses</h1>
+          <p className="text-sm text-graphite/60 dark:text-gray-400">Log, filter, and manage every expense.</p>
         </div>
         <Button onClick={openCreate} className="gap-1.5">
           <Plus size={16} />
@@ -173,7 +174,7 @@ export default function Expenses() {
       <Card className="!p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
-            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-graphite/40 dark:text-gray-400" />
             <input
               className="input pl-9"
               placeholder="Search expenses…"
@@ -198,44 +199,57 @@ export default function Expenses() {
 
       <Card className="!p-0">
         {isLoading ? (
-          <p className="p-6 text-sm text-gray-500 dark:text-gray-400">Loading expenses…</p>
+          <p className="p-6 text-sm text-graphite/60 dark:text-gray-400">Loading expenses…</p>
         ) : error ? (
           <p className="p-6 text-sm text-danger">{error}</p>
         ) : expenses.length === 0 ? (
-          <p className="p-6 text-sm text-gray-500 dark:text-gray-400">
+          <p className="p-6 text-sm text-graphite/60 dark:text-gray-400">
             No expenses found{search || categoryFilter ? " for these filters." : " yet. Add your first one."}
           </p>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-slate-700">
+          <div className="divide-y divide-ash dark:divide-slate-700">
             {groupedExpenses.map((group) => (
               <div key={group.key}>
-                <p className="sticky top-0 z-10 bg-gray-50/90 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 backdrop-blur dark:bg-slate-800/90 dark:text-gray-400">
+                <p className="sticky top-0 z-10 bg-ivory/90 px-5 py-2 text-[10px] font-semibold uppercase tracking-wider text-graphite/40 backdrop-blur dark:bg-slate-800/90 dark:text-gray-500 border-b border-ash dark:border-slate-700/60">
                   {group.label}
                 </p>
-                <ul className="divide-y divide-gray-100 dark:divide-slate-700">
-                  {group.items.map((expense, index) => (
-                    <motion.li
-                      key={expense._id}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.2, delay: Math.min(index * 0.025, 0.25), ease: "easeOut" }}
-                      className="flex items-center justify-between gap-4 px-5 py-3.5"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-50">{expense.title}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {formatDate(expense.date)} · {categoryName(expense.category)}
-                        </p>
-                      </div>
+                <ul className="divide-y divide-ash dark:divide-slate-700/60">
+                  {group.items.map((expense, index) => {
+                    const categoryObj = getCategoryFromField(expense.category);
+                    const Icon = resolveCategoryIcon(categoryObj?.icon, "expense");
+                    const iconColor = resolveCategoryColor(categoryObj?.color, categoryObj?.name || expense.title);
 
-                      <div className="flex shrink-0 items-center gap-4">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-50">
-                          −{formatCurrency(expense.amount, currency)}
-                        </span>
+                    return (
+                      <motion.li
+                        key={expense._id}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.2, delay: Math.min(index * 0.025, 0.25), ease: "easeOut" }}
+                        className="group flex items-center justify-between gap-4 px-5 py-3 transition-colors hover:bg-fog dark:hover:bg-slate-800/60"
+                      >
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          <div
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm dark:rounded-xl transition-transform duration-150 group-hover:scale-105"
+                            style={{ backgroundColor: `${iconColor}15`, color: iconColor }}
+                          >
+                            <Icon size={18} strokeWidth={1.5} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-graphite dark:text-gray-50">{expense.title}</p>
+                            <p className="truncate text-xs text-graphite/60 dark:text-gray-400">
+                              {categoryName(expense.category)} · {formatDate(expense.date)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex shrink-0 items-center gap-5">
+                          <span className="text-sm font-semibold text-graphite dark:text-gray-300">
+                            −{formatCurrency(expense.amount, currency)}
+                          </span>
 
                         {confirmDeleteId === expense._id ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500 dark:text-gray-400">Delete?</span>
+                            <span className="text-xs text-graphite/60 dark:text-gray-400">Delete?</span>
                             <button
                               onClick={() => handleDelete(expense._id)}
                               disabled={rowActionId === expense._id}
@@ -245,7 +259,7 @@ export default function Expenses() {
                             </button>
                             <button
                               onClick={() => setConfirmDeleteId(null)}
-                              className="text-xs font-medium text-gray-500 hover:underline dark:text-gray-400"
+                              className="text-xs font-medium text-graphite/60 hover:underline dark:text-gray-400"
                             >
                               Cancel
                             </button>
@@ -255,7 +269,7 @@ export default function Expenses() {
                             <button
                               onClick={() => openEdit(expense)}
                               aria-label="Edit"
-                              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-slate-700 dark:hover:text-gray-300"
+                              className="rounded-lg p-1.5 text-graphite/40 dark:text-gray-400 hover:bg-white hover:text-graphite dark:hover:bg-slate-700 dark:hover:text-gray-200"
                             >
                               <Pencil size={15} />
                             </button>
@@ -263,14 +277,14 @@ export default function Expenses() {
                               onClick={() => handleDuplicate(expense._id)}
                               disabled={rowActionId === expense._id}
                               aria-label="Duplicate"
-                              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-slate-700 dark:hover:text-gray-300"
+                              className="rounded-lg p-1.5 text-graphite/40 dark:text-gray-400 hover:bg-white hover:text-graphite dark:hover:bg-slate-700 dark:hover:text-gray-200"
                             >
                               <Copy size={15} />
                             </button>
                             <button
                               onClick={() => setConfirmDeleteId(expense._id)}
                               aria-label="Delete"
-                              className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-danger dark:hover:bg-red-500/10"
+                              className="rounded-lg p-1.5 text-graphite/40 dark:text-gray-400 hover:bg-red-50 hover:text-danger dark:hover:bg-red-500/20 dark:hover:text-red-400"
                             >
                               <Trash2 size={15} />
                             </button>
@@ -278,7 +292,8 @@ export default function Expenses() {
                         )}
                       </div>
                     </motion.li>
-                  ))}
+                    );
+                  })}
                 </ul>
               </div>
             ))}
@@ -287,7 +302,7 @@ export default function Expenses() {
       </Card>
 
       {!isLoading && !error && total > 0 && (
-        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-between text-sm text-graphite/60 dark:text-gray-400">
           <span>
             Page {page} of {pageCount} · {total} total
           </span>
@@ -295,7 +310,7 @@ export default function Expenses() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="rounded-lg p-1.5 hover:bg-gray-50 disabled:opacity-40 dark:hover:bg-slate-800"
+              className="rounded-lg p-1.5 hover:bg-fog disabled:opacity-40 dark:hover:bg-slate-800"
               aria-label="Previous page"
             >
               <ChevronLeft size={16} />
@@ -303,7 +318,7 @@ export default function Expenses() {
             <button
               onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
               disabled={page >= pageCount}
-              className="rounded-lg p-1.5 hover:bg-gray-50 disabled:opacity-40 dark:hover:bg-slate-800"
+              className="rounded-lg p-1.5 hover:bg-fog disabled:opacity-40 dark:hover:bg-slate-800"
               aria-label="Next page"
             >
               <ChevronRight size={16} />

@@ -9,6 +9,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Legacy colors (mainly preserved for dark mode)
         primary: {
           50: "#ecfdf5",
           100: "#d1fae5",
@@ -27,6 +28,13 @@ export default {
           light: "#ffffff",
           dark: "#0f172a",
         },
+        // New editorial palette (Light Mode)
+        ivory: "#EBE6DD",
+        fog: "#F5F5F5",
+        ash: "#EFEFEF",
+        graphite: "#202020",
+        ember: "#FF682C",
+        brass: "#816729",
       },
       borderRadius: {
         xl: "1rem",
@@ -35,9 +43,12 @@ export default {
       boxShadow: {
         soft: "0 2px 12px 0 rgb(0 0 0 / 0.06)",
         lift: "0 8px 24px -8px rgb(0 0 0 / 0.18)",
+        // New minimal shadow for editorial look
+        editorial: "0 1px 3px 0 rgb(0 0 0 / 0.05)",
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["Space Grotesk", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       keyframes: {
         shimmer: {

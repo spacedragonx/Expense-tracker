@@ -1,18 +1,30 @@
 import { useState } from "react";
-import { Bell, LogOut, ChevronDown } from "lucide-react";
+import { Bell, LogOut, ChevronDown, Moon, Sun } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import QuickAddMenu from "./QuickAddMenu";
 
-/** Top navbar: quick-add menu, notifications, and profile menu. */
+/** Top navbar: quick-add menu, theme toggle, notifications, and profile menu. */
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { resolvedTheme, setTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const isDark = resolvedTheme === "dark";
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100/80 bg-white/80 px-4 py-3 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80 md:px-6">
       <div />
       <div className="flex items-center gap-3">
         <QuickAddMenu />
+
+        <button
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          className="rounded-xl p-2 text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-slate-800"
+          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          title={isDark ? "Light mode" : "Dark mode"}
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
 
         <button
           className="rounded-xl p-2 text-gray-500 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-slate-800"

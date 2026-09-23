@@ -8,6 +8,7 @@
     "migrate:currency-inr": "ts-node src/scripts/migrateCurrencyToInr.ts",
     "diagnose:currency": "ts-node src/scripts/diagnoseCurrency.ts",
     "seed:expense-categories": "ts-node src/scripts/seedDefaultExpenseCategories.ts",
+    "migrate:dedup-indexes": "ts-node src/scripts/fixDedupHashIndexes.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts",

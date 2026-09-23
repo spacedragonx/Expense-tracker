@@ -13,9 +13,9 @@ export default function AppShell() {
   const location = useLocation();
 
   return (
-    <div className="relative flex min-h-screen bg-gray-50 dark:bg-[#0b1220]">
+    <div className="relative flex min-h-screen bg-fog dark:bg-[#0b1220]">
       {/* Extremely subtle ambient depth behind the whole app frame — kept faint so the UI stays minimalist. */}
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(900px_circle_at_20%_-10%,rgb(16_185_129/0.05),transparent_55%)] dark:bg-[radial-gradient(900px_circle_at_20%_-10%,rgb(16_185_129/0.09),transparent_55%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(900px_circle_at_20%_-10%,rgba(255,104,44,0.03),transparent_55%)] dark:bg-[radial-gradient(900px_circle_at_20%_-10%,rgb(16_185_129/0.09),transparent_55%)]" />
       <Sidebar />
       <div className="relative flex flex-1 flex-col">
         <Navbar />

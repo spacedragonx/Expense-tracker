@@ -73,10 +73,10 @@ export default function ActivityFeed({ transactions, currency }: ActivityFeedPro
     <div className="space-y-4">
       {groups.map((group) => (
         <div key={group.bucket}>
-          <p className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+          <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wider text-graphite/40 dark:text-gray-500">
             {group.bucket}
           </p>
-          <ul className="divide-y divide-gray-100 dark:divide-slate-700/60">
+          <ul className="divide-y divide-ash dark:divide-slate-700/60">
             {group.items.map(({ tx, order }) => {
               const isIncome = tx.type === "income";
               const category = !isIncome ? getCategoryFromField(asExpense(tx).category) : null;
@@ -92,23 +92,23 @@ export default function ActivityFeed({ transactions, currency }: ActivityFeedPro
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2, delay: Math.min(order * 0.03, 0.24), ease: "easeOut" }}
-                  className="group flex items-center gap-3 rounded-lg px-1 py-2.5 transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/60"
+                  className="group flex items-center gap-3 px-1 py-2.5 transition-colors hover:bg-fog dark:hover:bg-slate-800/60"
                 >
                   <div
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-150 group-hover:scale-105"
-                    style={{ backgroundColor: `${iconColor}1a`, color: iconColor }}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm dark:rounded-xl transition-transform duration-150 group-hover:scale-105"
+                    style={{ backgroundColor: `${iconColor}15`, color: iconColor }}
                   >
-                    <Icon size={16} />
+                    <Icon size={16} strokeWidth={1.5} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-50">{tx.title}</p>
-                    <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                    <p className="truncate text-sm font-medium text-graphite dark:text-gray-50">{tx.title}</p>
+                    <p className="truncate text-xs text-graphite/60 dark:text-gray-400">
                       {subLabel} · {new Date(tx.date).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
                     </p>
                   </div>
                   <span
                     className={`shrink-0 text-sm font-semibold ${
-                      isIncome ? "text-emerald-600 dark:text-emerald-500" : "text-gray-700 dark:text-gray-300"
+                      isIncome ? "text-brass dark:text-emerald-500" : "text-graphite dark:text-gray-300"
                     }`}
                   >
                     {isIncome ? "+" : "−"}
@@ -123,7 +123,7 @@ export default function ActivityFeed({ transactions, currency }: ActivityFeedPro
 
       <Link
         to="/expenses"
-        className="block pt-1 text-center text-xs font-medium text-primary-600 hover:underline dark:text-primary-500"
+        className="block pt-1 text-center text-xs font-medium text-graphite/60 hover:text-graphite hover:underline dark:text-primary-500"
       >
         View all transactions
       </Link>

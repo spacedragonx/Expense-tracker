@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, PieChart as PieChartIcon, BarChart3, Radar as RadarIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Bar,
   BarChart,
@@ -23,8 +24,35 @@ import {
 import dashboardApi, { SpendingByCategoryItem, TrendAggPoint } from "@/api/dashboardApi";
 import { useAuth } from "@/context/AuthContext";
 import Card from "@/components/common/Card";
+import Odometer from "@/components/common/Odometer";
 import { formatCurrency, formatMonthYear } from "@/utils/format";
 import { categoryColor } from "@/utils/categoryColors";
+import { Sector, Text } from "recharts";
+
+const renderActiveShape = (props: any) => {
+  const RADIAN = Math.PI / 180;
+  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+  
+  const popOut = 6;
+  const newCx = cx + popOut * Math.cos(-midAngle * RADIAN);
+  const newCy = cy + popOut * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <Sector
+      cx={newCx}
+      cy={newCy}
+      innerRadius={innerRadius}
+      outerRadius={outerRadius + 6}
+      startAngle={startAngle}
+      endAngle={endAngle}
+      fill={fill}
+      style={{ 
+        filter: "drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.15))",
+        transition: "all 300ms cubic-bezier(0.4, 0, 0.2, 1)"
+      }}
+    />
+  );
+};
 
 const now = new Date();
 
@@ -308,7 +336,7 @@ export default function Analytics() {
           </div>
         ) : (
           <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-2">
-            <div className="h-64">
+            <div className="relative h-64">
               <ResponsiveContainer width="100%" height="100%">
                 {categoryChartType === "donut" ? (
                   <PieChart>
@@ -316,10 +344,12 @@ export default function Analytics() {
                       data={categoryData}
                       dataKey="total"
                       nameKey="category"
-                      innerRadius={58}
-                      outerRadius={90}
+                      innerRadius={75}
+                      outerRadius={110}
                       paddingAngle={2}
                       strokeWidth={0}
+                      activeIndex={hoveredSliceIndex !== null ? hoveredSliceIndex : undefined}
+                      activeShape={renderActiveShape}
                       onMouseEnter={(_, index) => setHoveredSliceIndex(index)}
                       onMouseLeave={() => setHoveredSliceIndex(null)}
                     >
@@ -328,14 +358,26 @@ export default function Analytics() {
                           key={entry.category}
                           fill={categoryColor(entry.color, index, entry.category)}
                           fillOpacity={hoveredSliceIndex === null || hoveredSliceIndex === index ? 1 : 0.35}
-                          style={{ cursor: "pointer", transition: "fill-opacity 150ms ease" }}
+                          style={{ 
+                            cursor: "pointer", 
+                            transition: "all 300ms cubic-bezier(0.4, 0, 0.2, 1)" 
+                          }}
                         />
                       ))}
                     </Pie>
-                    <Tooltip content={<ChartTooltip currency={currency} />} />
                   </PieChart>
                 ) : categoryChartType === "bar" ? (
-                  <BarChart data={categoryData} layout="vertical" margin={{ left: 4, right: 12, top: 4, bottom: 4 }}>
+                  <BarChart 
+                    data={categoryData} 
+                    layout="vertical" 
+                    margin={{ left: 4, right: 12, top: 4, bottom: 4 }}
+                    onMouseMove={(e: any) => {
+                      if (e && e.activeTooltipIndex !== undefined) {
+                        setHoveredSliceIndex(e.activeTooltipIndex);
+                      }
+                    }}
+                    onMouseLeave={() => setHoveredSliceIndex(null)}
+                  >
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#94a3b8" opacity={0.15} />
                     <XAxis
                       type="number"
@@ -358,26 +400,100 @@ export default function Analytics() {
                         <Cell
                           key={entry.category}
                           fill={categoryColor(entry.color, index, entry.category)}
-                          style={{ cursor: "pointer" }}
+                          fillOpacity={hoveredSliceIndex === null || hoveredSliceIndex === index ? 1 : 0.35}
+                          style={{ 
+                            cursor: "pointer", 
+                            transition: "all 300ms cubic-bezier(0.4, 0, 0.2, 1)" 
+                          }}
                         />
                       ))}
                     </Bar>
                   </BarChart>
                 ) : (
-                  <RadarChart data={categoryData} outerRadius="75%">
+                  <RadarChart 
+                    data={categoryData} 
+                    outerRadius="75%"
+                    onMouseMove={(e: any) => {
+                      if (e && e.activeTooltipIndex !== undefined) {
+                        setHoveredSliceIndex(e.activeTooltipIndex);
+                      }
+                    }}
+                    onMouseLeave={() => setHoveredSliceIndex(null)}
+                  >
                     <PolarGrid stroke="#94a3b8" opacity={0.25} />
-                    <PolarAngleAxis dataKey="category" tick={{ fontSize: 10, fill: "#94a3b8" }} />
+                    <PolarAngleAxis 
+                      dataKey="category" 
+                      tick={(props: any) => {
+                        const { payload, x, y, cx, cy, ...rest } = props;
+                        const index = categoryData.findIndex((c) => c.category === payload.value);
+                        const isHovered = hoveredSliceIndex === index;
+                        return (
+                          <Text 
+                            {...rest} 
+                            x={x} y={y} cx={cx} cy={cy} 
+                            fill={isHovered ? "#8b5cf6" : "#94a3b8"} 
+                            fontSize={10} 
+                            fontWeight={isHovered ? "bold" : "normal"}
+                            className="transition-colors duration-300"
+                          >
+                            {payload.value}
+                          </Text>
+                        );
+                      }} 
+                    />
                     <Radar
                       dataKey="total"
                       stroke="#8b5cf6"
                       fill="#8b5cf6"
                       fillOpacity={0.35}
                       strokeWidth={2}
+                      activeDot={false}
+                      dot={(props: any) => {
+                        const { cx, cy, index } = props;
+                        const isHovered = hoveredSliceIndex === index;
+                        return (
+                          <circle 
+                            key={`dot-${index}`}
+                            cx={cx} 
+                            cy={cy} 
+                            r={isHovered ? 5 : 0} 
+                            fill="#8b5cf6" 
+                            stroke="#fff" 
+                            strokeWidth={2} 
+                            style={{ transition: "all 300ms cubic-bezier(0.4, 0, 0.2, 1)" }}
+                          />
+                        );
+                      }}
                     />
                     <Tooltip content={<ChartTooltip currency={currency} />} />
                   </RadarChart>
                 )}
               </ResponsiveContainer>
+              
+              {categoryChartType === "donut" && (
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+                  <div className="h-5 w-full flex items-center justify-center overflow-hidden mb-1">
+                    <AnimatePresence mode="popLayout">
+                      <motion.p
+                        key={hoveredSliceIndex !== null ? categoryData[hoveredSliceIndex].category : "total"}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 line-clamp-1 max-w-[100px]"
+                      >
+                        {hoveredSliceIndex !== null ? categoryData[hoveredSliceIndex].category : "Total"}
+                      </motion.p>
+                    </AnimatePresence>
+                  </div>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-gray-50">
+                    <Odometer
+                      value={hoveredSliceIndex !== null ? categoryData[hoveredSliceIndex].total : categoryTotal}
+                      currency={currency}
+                    />
+                  </p>
+                </div>
+              )}
             </div>
 
             <ul className="space-y-3">
