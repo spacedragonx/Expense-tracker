@@ -5,6 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon --watch src --exec ts-node src/server.ts",
+    "dev": "nodemon --watch src --watch .env --exec ts-node src/server.ts",
     "migrate:currency-inr": "ts-node src/scripts/migrateCurrencyToInr.ts",
     "diagnose:currency": "ts-node src/scripts/diagnoseCurrency.ts",
     "seed:expense-categories": "ts-node src/scripts/seedDefaultExpenseCategories.ts",
